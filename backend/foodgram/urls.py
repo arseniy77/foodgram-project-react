@@ -5,6 +5,7 @@ from django.conf.urls import handler404, handler500
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+
 from recipes.views import index
 
 
@@ -15,6 +16,7 @@ urlpatterns = [
     # path('auth/', include('users.urls')),
     # path('auth/', include('django.contrib.auth.urls')),
     path('admin/', admin.site.urls),
+    path('api/auth/', include('users.urls')),
     path('api/', include('recipes.urls')),
     path('', index, name='index'),
 ]

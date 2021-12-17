@@ -22,7 +22,7 @@ zipp==2.2.0               # via importlib-metadata
 mixer==7.1.2
 django-debug-toolbar
 djangorestframework==3.12.4
-djangorestframework-simplejwt==4.7.2
+djangorestframework_simplejwt==4.7.2
 PyJWT==2.1.0
 django-filter
 python-dotenv
@@ -31,6 +31,6 @@ gunicorn==20.0.4
 psycopg2-binary==2.8.5
 pytz==2020.1
 sqlparse==0.3.1
-
+djoser
 # для postgresql
 django-environ
