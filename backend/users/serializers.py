@@ -5,11 +5,11 @@ from .models import User
 
 FIELDS = {
     'user': (
+        'email',
+        'id',
+        'username',
         'first_name',
         'last_name',
-        'username',
-        'email',
-        'role',
     ),
     'signup': ('email', 'username'),
     'token': ('username', 'confirmation_code')
