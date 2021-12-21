@@ -4,13 +4,13 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import serializers, viewsets
+from rest_framework import filters, serializers, viewsets
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
 from .filters import RecipeFilter
-from .models import Tag, Recipe
-from .serializers import RecipeSerializer, TagSerializer
+from .models import Ingredient, Tag, Recipe
+from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -43,3 +43,10 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 def index(request):
     return HttpResponse('У меня получилось! Пыщ-Пыщ!!')
+
+
+class IngredientViewSet(viewsets.ModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)

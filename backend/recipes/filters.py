@@ -17,9 +17,8 @@ from .models import Recipe
 
 class RecipeFilter(filters.FilterSet):
     author = filters.CharFilter(field_name='author__id',)
-    tags = filters.CharFilter(
+    tags = filters.AllValuesMultipleFilter(
         field_name='tags__slug',
-        lookup_expr='contains',
     )
 
     class Meta:

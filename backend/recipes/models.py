@@ -20,8 +20,29 @@ class Tag(models.Model):
     color = models.CharField(verbose_name='Цвет', max_length=7)
     slug = models.SlugField(verbose_name='тег-слаг', unique=True)
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+        ordering = ('name',)
+
     def __str__(self):
         return self.name
+
+
+class Ingredient(models.Model):
+    name = models.CharField(
+        verbose_name='Ингредиент', max_length=100)
+    measurement_unit = models.CharField(
+        verbose_name='Единицы измерения', max_length=50)
+    amount = models.PositiveIntegerField(verbose_name='Количество')
+
+    class Meta:
+        verbose_name = 'Ингредиенты'
+        verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class Recipe(models.Model):
@@ -45,21 +66,44 @@ class Recipe(models.Model):
         verbose_name='Время приготовления',
     )
 
-
     class Meta:
-        verbose_name = 'Запись'
-        verbose_name_plural = 'Записи'
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
         ordering = ('name',)
 
     def __str__(self):
         return f'{self.text:.15}...'
 
 
-
-
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=CASCADE)
     tag = models.ForeignKey(Tag, on_delete=CASCADE)
 
+    class Meta:
+        verbose_name = 'Рецепт -> Тег'
+        verbose_name_plural = 'Рецепт -> Тег'
+        ordering = ('recipe',)
+
     def __str__(self):
         return f'{self.recipe} -> {self.tag}'
+
+
+class RecipeIngredients(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='ingredients'
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='recipes'
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт -> Ингредиент'
+        verbose_name_plural = 'Рецепт -> Ингредиент'
+        ordering = ('recipe',)
+    def __str__(self):
+        return f'{self.recipe} -> {self.ingredient}'
+
