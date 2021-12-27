@@ -4,10 +4,11 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, serializers, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
+from users.permissions import AnyUserOrAnonimous
 from .filters import RecipeFilter
 from .models import Ingredient, Tag, Recipe
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
@@ -20,7 +21,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    # def get_queryset(self):
+    def get_permissions(self):
+        # Если в GET-запросе требуется получить информацию об объекте
+        if self.action in ['retrieve', 'list',]:
+            # Вернем обновленный перечень используемых пермишенов
+            return (AnyUserOrAnonimous(),)
+        # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
+        return super().get_permissions()
+
+
+        # def get_queryset(self):
     #     name = get_object_or_404(Recipe, id=self.kwargs.get('name_id'))
     #     return Recipe.objects.filter(name=name)
 
@@ -42,6 +52,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TagSerializer
 
 def index(request):
+    print('index заглушка')
     return HttpResponse('У меня получилось! Пыщ-Пыщ!!')
 
 
@@ -50,3 +61,8 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list',]:
+            return (AnyUserOrAnonimous(),)
+        return super().get_permissions()

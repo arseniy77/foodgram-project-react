@@ -15,3 +15,10 @@ class IsAdmin(permissions.BasePermission):
             request.user.is_superuser
             or request.user.role == User.ADMIN
         )
+
+
+class AnyUserOrAnonimous(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return True
+    def has_object_permission(self, request, view, obj):
+        return True

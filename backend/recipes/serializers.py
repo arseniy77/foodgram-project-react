@@ -28,7 +28,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
     ingredients = IngredientRecipeSerializer(
-        many=True, read_only=True)
+        many=True, read_only=True,)
 
     class Meta:
         model = Recipe
@@ -47,8 +47,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     measurement_unit = serializers.CharField()
-    amount = serializers.IntegerField()
 
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'name', 'measurement_unit',)

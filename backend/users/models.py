@@ -11,6 +11,23 @@ class User(AbstractUser):
         (ADMIN, 'admin'),
     )
 
+    email = models.EmailField(
+        max_length=254,
+        blank=False,
+        verbose_name='E-mail',
+    )
+
+    first_name = models.CharField(
+        max_length=150,
+        blank=False,
+        verbose_name='Имя',
+    )
+
+    last_name = models.CharField(
+        max_length=150,
+        blank=False,
+        verbose_name='Фамилия',
+    )
 
     role = models.CharField(
         max_length=20,
@@ -23,6 +40,8 @@ class User(AbstractUser):
     )
 
     class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
         ordering = ('id',)
 
     def __str__(self):
