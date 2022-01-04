@@ -10,9 +10,10 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 
-from .models import User
+from .models import Subscription, User
 from .permissions import AnyUserOrAnonimous
 from .serializers import (UserSerializer,
+                          SubscriptionSerializer,
                           UserSignupSerializer,
                           AuthCustomTokenSerializer,
                           ChangePasswordSerializer,
@@ -72,6 +73,20 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
 
+    @action(
+        methods=['GET', 'PATCH'],
+        detail=False,
+        name='subscriptions',
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def subscriptions(self, request):
+        user = request.user
+        subscription_list = Subscription.objects.filter(user=user)
+        serializer = SubscriptionSerializer(subscription_list, many=True)
+        return Response(serializer.data)
+
+
+
 
 class ObtainAuthToken(APIView):
     throttle_classes = ()
@@ -125,7 +140,10 @@ class ChangePasswordViewset(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+# class SubscriptionViewSet(viewsets.ModelViewSet):
+#     queryset = Subscription.objects.all()
+#     serializer_class = SubscriptionSerializer
+#     permission_classes = (AnyUserOrAnonimous,)
 
 
 # @api_view(['POST'])

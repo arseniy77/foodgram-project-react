@@ -10,7 +10,7 @@ from rest_framework.pagination import (LimitOffsetPagination,
 
 from users.permissions import AnyUserOrAnonimous
 from .filters import RecipeFilter
-from .models import Ingredient, Tag, Recipe
+from .models import Ingredient, Recipe, Tag
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 
 
@@ -66,3 +66,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
         if self.action in ['retrieve', 'list',]:
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
+
+
+
+

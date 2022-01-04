@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-from .models import User
+from .models import Subscription, User
 
 FIELDS = {
     'user': (
@@ -116,6 +116,13 @@ class ChangePasswordSerializer(serializers.Serializer):
     model = User
     new_password = serializers.CharField(required=True)
     current_password = serializers.CharField(required=True)
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subscription
+        fields = ('__all__')
 
 # class TokenSerializer(AuthTokenSerializer):
 #     username = serializers.CharField(required=False)
