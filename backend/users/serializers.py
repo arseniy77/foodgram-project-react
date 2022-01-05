@@ -14,13 +14,32 @@ FIELDS = {
         'username',
         'first_name',
         'last_name',
+        'is_subscribed',
     ),
     'signup': ('email', 'id', 'username', 'first_name', 'last_name', 'password',),
     'token': ('password', 'email',)
 }
 
 
+# class IsSubscribedField(serializers.Field):
+#     def to_representation(self, value):
+#         usern = self.context.user.username
+#         return usern
+
+
 class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    def get_is_subscribed(self, obj):
+        if self.context.get('request'):
+            user = self.context['request'].user
+            if user.is_anonymous:
+                return False
+            return Subscription.objects.filter(
+                user=user, author=obj).exists()
+        else:
+            return False
+
 
     class Meta:
         fields = FIELDS['user']
