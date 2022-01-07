@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from .models import Ingredient, Tag, Recipe, RecipeIngredients, RecipeTag
+from .models import FavouriteRecipe
 
 
 @admin.register(Recipe)
@@ -49,4 +50,15 @@ class RecipeIngredientsAdmin(admin.ModelAdmin):
     )
     search_fields = ('recipe',)
     list_filter = ('ingredient',)
+    empty_value_display = settings.BLANK_VALUE_CONST
+
+
+@admin.register(FavouriteRecipe)
+class FavouriteRecipeAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk', 'user', 'recipe', 'is_in_shopping_cart',
+        'is_favourite', 'added_to_favourite',
+    )
+    search_fields = ('recipe',)
+    list_filter = ('user',)
     empty_value_display = settings.BLANK_VALUE_CONST

@@ -53,3 +53,13 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit',)
 
 
+# class RecipeFavouriteSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = Recipe
+#         fields = (
+#             'id',
+#             'name',
+#             'image',
+#             'cooking_time',
+#         )

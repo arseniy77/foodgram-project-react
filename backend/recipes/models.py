@@ -49,7 +49,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='posts'
+        related_name='recipes'
     )
     name = models.CharField(
         verbose_name='Название',
@@ -108,3 +108,46 @@ class RecipeIngredients(models.Model):
         return f'{self.recipe} -> {self.ingredient}'
 
 
+class FavouriteRecipe(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='favourite_recipes',
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='in_favourites',
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+    is_in_shopping_cart = models.BooleanField(
+        default=False,
+        verbose_name='В корзине'
+    )
+    is_favourite = models.BooleanField(
+        default=False,
+        verbose_name='В избранном'
+    )
+    added_to_favourite = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='added at'
+    )
+    added_to_shopping_cart = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='added at'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favourite_recipe',
+            )
+        ]
+        verbose_name = 'Favourites'
+        verbose_name_plural = 'Favourites'
+        ordering = ['-added_to_favourite', '-added_to_shopping_cart']
+
+    def __str__(self):
+        return f'{self.user.username} - {self.recipe.name}'

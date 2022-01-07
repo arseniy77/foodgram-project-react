@@ -6,6 +6,8 @@ from rest_framework.validators import UniqueValidator
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
 from .models import Subscription, User
+from recipes.models import Recipe
+
 
 FIELDS = {
     'user': (
@@ -21,10 +23,16 @@ FIELDS = {
 }
 
 
-# class IsSubscribedField(serializers.Field):
-#     def to_representation(self, value):
-#         usern = self.context.user.username
-#         return usern
+class RecipeFavouriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -36,7 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
             if user.is_anonymous:
                 return False
             return Subscription.objects.filter(
-                user=user, author=obj).exists()
+                subscriber=user, subscription=obj).exists()
         else:
             return False
 
@@ -95,9 +103,6 @@ class UserJwtSerializer(serializers.ModelSerializer):
         model = User
 
 
-#
-
-
 class AuthCustomTokenSerializer(serializers.Serializer):
     email = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
@@ -137,32 +142,52 @@ class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True)
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionChangeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
         fields = ('__all__')
 
-# class TokenSerializer(AuthTokenSerializer):
-#     username = serializers.CharField(required=False)
-#     email = serializers.EmailField(required=True)
-#
-#     def validate(self, attrs):
-#         email = attrs.get('email')
-#         password = attrs.get('password')
-#         if email and password:
-#             user = authenticate(request=self.context.get('request'),
-#                                 email=email, password=password)
-#
-#             # The authenticate call simply returns None for is_active=False
-#             # users. (Assuming the default ModelBackend authentication
-#             # backend.)
-#             if not user:
-#                 msg = ('Unable to log in with provided credentials.')
-#                 raise serializers.ValidationError(msg, code='authorization')
-#         else:
-#             msg = ('Must111 include "username" and "password".')
-#             raise serializers.ValidationError(msg, code='authorization')
-#
-#         attrs['user'] = user
-#         return attrs
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='subscription.email')
+    id = serializers.IntegerField(source='subscription.id')
+    username = serializers.CharField(source='subscription.username')
+    first_name = serializers.CharField(source='subscription.first_name')
+    last_name = serializers.CharField(source='subscription.last_name')
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Subscription
+        fields = [
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        ]
+
+    def get_is_subscribed(self, obj):
+        print('serial')
+        if self.context.get('request'):
+            user = self.context['request'].user
+            print(user)
+            if user.is_anonymous:
+                return False
+            return Subscription.objects.filter(
+                subscriber=user, subscription=obj.subscription).exists()
+        else:
+            return False
+
+    def get_recipes(self, obj):
+        recipes = obj.subscription.recipes.all()
+        return RecipeFavouriteSerializer(recipes, many=True).data
+
+    def get_recipes_count(self, obj):
+        counter = Recipe.objects.filter(author=obj.subscriber).count()
+        return counter

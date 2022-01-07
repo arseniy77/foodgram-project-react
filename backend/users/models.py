@@ -47,29 +47,30 @@ class User(AbstractUser):
 
 
 class Subscription(models.Model):
-    user = models.ForeignKey(
+    subscriber = models.ForeignKey(
         User,
         related_name='follower',
         on_delete=models.CASCADE,
         verbose_name='Подписчик',
     )
-    author = models.ForeignKey(
+    subscription = models.ForeignKey(
         User,
         related_name='following',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Подписан на'
     )
 
     def __str__(self):
-        return f'Подписчик {self.user}'
+        return f'Подписчик {self.subscriber}'
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
+                fields=['subscriber', 'subscription'],
                 name='uniq_follow'
             ),
             models.CheckConstraint(
-                check=~Q(user=F('author')),
+                check=~Q(subscriber=F('subscription')),
                 name='self_following'
             )
         ]

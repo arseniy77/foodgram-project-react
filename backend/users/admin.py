@@ -13,7 +13,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'author')
-    search_fields = ('user',)
-    list_filter = ('author',)
+    list_display = ('subscriber', 'subscription')
+    search_fields = ('subscriber',)
+    list_filter = ('subscription',)
     empty_value_display = settings.BLANK_VALUE_CONST

@@ -1,9 +1,11 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 
-from rest_framework import parsers, renderers
+from rest_framework import generics, parsers, renderers
 from rest_framework.pagination import LimitOffsetPagination
 
 # from foodgram.settings import DEFAULT_FROM_EMAIL
@@ -14,6 +16,7 @@ from .models import Subscription, User
 from .permissions import AnyUserOrAnonimous
 from .serializers import (UserSerializer,
                           SubscriptionSerializer,
+                          SubscriptionChangeSerializer,
                           UserSignupSerializer,
                           AuthCustomTokenSerializer,
                           ChangePasswordSerializer,
@@ -32,9 +35,9 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return UserSignupSerializer
+        elif self.action == 'subscribe':
+            return SubscriptionChangeSerializer
         return UserSerializer
-
-
 
 
     @action(
@@ -73,17 +76,49 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
 
-    @action(
-        methods=['GET', 'PATCH'],
-        detail=False,
-        name='subscriptions',
-        permission_classes=[permissions.IsAuthenticated],
-    )
-    def subscriptions(self, request):
-        user = request.user
-        subscription_list = Subscription.objects.filter(user=user)
-        serializer = SubscriptionSerializer(subscription_list, many=True)
-        return Response(serializer.data)
+    @action(detail=True, methods=['GET', 'DELETE'],
+            permission_classes=[permissions.IsAuthenticated]
+            )
+    def subscribe(self, request, id=None):
+        subscriber = self.request.user
+        subscription = self.get_object()
+
+        if request.method == 'GET':
+
+            if Subscription.objects.filter(
+                    subscriber=subscriber,
+                    subscription=subscription).exists():
+                return Response(
+                    ('Вы уже подписаны на этого автора'),
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            data = {
+                'subscriber': subscriber.id,
+                'subscription': subscription.id,
+            }
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            response_subscription = Subscription.objects.get(
+                subscriber=subscriber, subscription=subscription)
+            serialized_response = SubscriptionSerializer(
+                response_subscription)
+            return Response(
+                serialized_response.data,
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+
+        if request.method == 'DELETE':
+            instance = get_object_or_404(
+                Subscription,
+                subscriber=subscriber,
+                subscription=subscription,
+            )
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -111,7 +146,8 @@ class ObtainAuthToken(APIView):
 
 
 class UserLogout(APIView):
-    permission_classes = [permissions.IsAuthenticated,]
+    permission_classes = (permissions.IsAuthenticated,)
+
     def post(self, request):
         request.user.auth_token.delete()
         return Response('null', status=status.HTTP_200_OK)
@@ -140,80 +176,21 @@ class ChangePasswordViewset(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    serializer_class = SubscriptionSerializer
+    # filter_backends = (DjangoFilterBackend,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        response = Subscription.objects.filter(
+            subscriber=user).select_related('subscription')
+        return response
+
+
 # class SubscriptionViewSet(viewsets.ModelViewSet):
 #     queryset = Subscription.objects.all()
 #     serializer_class = SubscriptionSerializer
 #     permission_classes = (AnyUserOrAnonimous,)
-
-
-# @api_view(['POST'])
-# def signup(request):
-#     serializer = AuthCustomTokenSerializer(data=request.data)
-#     serializer.is_valid(raise_exception=True)
-#     user = serializer.save()
-#     user.confirmation_code = default_token_generator.make_token(user)
-#     mail_subject = 'confirm code'
-#     message = f'Your confirm code: {user.confirmation_code}'
-#     send_mail(
-#         mail_subject,
-#         message,
-#         DEFAULT_FROM_EMAIL,
-#         [user.email],
-#         fail_silently=False,
-#         auth_user=user.username,
-#     )
-#     return Response(
-#         {'email': user.email, 'username': user.username},
-#         status=status.HTTP_200_OK
-#     )
-
-
-# @api_view(['POST'])
-# def get_jwt_token(request):
-#     serializer = UserJwtSerializer(data=request.data)
-#     serializer.is_valid(raise_exception=True)
-#     email = serializer.validated_data.get('email')
-#     password = serializer.validated_data.get('password')
-#     print(password)
-#     user = get_object_or_404(User, email=email)
-#     print('-->', user.password, '<--')
-#     if user.password == password:
-#         user.is_active = True
-#         user.save()
-#         token = AccessToken.for_user(user)
-#         return Response({'auth_token': f'{token}'}, status=status.HTTP_200_OK)
-#     return Response('Token jwt error', status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-# class CustomAuthToken(ObtainAuthToken):
-#
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.serializer_class(data=request.data,
-#                                            context={'request': request})
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.validated_data['user']
-#         token, created = Token.objects.get_or_create(user=user)
-#         return Response({
-#             'token': token.key,
-#             'user_id': user.pk,
-#             'email': user.email
-#         })
-
-
-# class CustomAuthToken(ObtainAuthToken):
-#
-#     def post(self, request, *args, **kwargs):
-#         serializer = TokenSerializer(data=request.data,
-#                                            context={'request': request})
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.validated_data['user']
-#         token, created = Token.objects.get_or_create(user=user)
-#         return Response({
-#             'token': token.key,
-#             'user_id': user.pk,
-#             'email': user.email
-#         })
 
 
