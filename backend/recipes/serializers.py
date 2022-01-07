@@ -29,6 +29,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     ingredients = IngredientRecipeSerializer(
         many=True, read_only=True,)
+    is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -37,6 +39,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
             'name',
             'image',
             'text',
@@ -53,13 +57,13 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit',)
 
 
-# class RecipeFavouriteSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = Recipe
-#         fields = (
-#             'id',
-#             'name',
-#             'image',
-#             'cooking_time',
-#         )
+class RecipeFavouriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )

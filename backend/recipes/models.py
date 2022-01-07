@@ -125,7 +125,7 @@ class FavouriteRecipe(models.Model):
         default=False,
         verbose_name='В корзине'
     )
-    is_favourite = models.BooleanField(
+    is_favorited = models.BooleanField(
         default=False,
         verbose_name='В избранном'
     )

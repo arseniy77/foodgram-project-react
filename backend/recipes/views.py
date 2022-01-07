@@ -4,14 +4,17 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from users.permissions import AnyUserOrAnonimous
 from .filters import RecipeFilter
-from .models import Ingredient, Recipe, Tag
+from .models import FavouriteRecipe, Ingredient, Recipe, Tag
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
+from .serializers import RecipeFavouriteSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -21,6 +24,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'POST', 'PATCH']:
+            return RecipeWriteSerializer
+        return RecipeSerializer
+
     def get_permissions(self):
         # Если в GET-запросе требуется получить информацию об объекте
         if self.action in ['retrieve', 'list',]:
@@ -29,23 +37,79 @@ class RecipeViewSet(viewsets.ModelViewSet):
         # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
         return super().get_permissions()
 
+    @action(detail=True, methods=['get', 'delete'],
+             permission_classes=[permissions.IsAuthenticated])
+    def favorite(self, request, pk=None):
+        user = self.request.user
+        recipe = self.get_object()
+        if request.method == 'GET':
+            if FavouriteRecipe.objects.filter(
+                user=user, recipe=recipe
+            ).exists():
+                return Response(
+                    {'errors': 'Рецепт уже добавлен в избранное'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+                FavouriteRecipe.objects.update_or_create(
+                    user=user, recipe=recipe,
+                    defaults={
+                        'user': user,
+                        'recipe': recipe,
+                        'is_favorited': True
+                    }
+                )
+                serialized_response = RecipeFavouriteSerializer(recipe)
+                return Response(
+                    serialized_response.data,
+                    status=status.HTTP_201_CREATED
+                )
 
-        # def get_queryset(self):
-    #     name = get_object_or_404(Recipe, id=self.kwargs.get('name_id'))
-    #     return Recipe.objects.filter(name=name)
+        fav_recipe = get_object_or_404(
+            FavouriteRecipe,
+            recipe=recipe, user=user
+        )
+        if not fav_recipe.is_in_shopping_cart:
+            fav_recipe.delete()
+        else:
+            fav_recipe.is_favorited = False
+            fav_recipe.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # def perform_create(self, serializer):
-    #     name = get_object_or_404(Recipe, id=self.kwargs.get('name_id'))
-    #     serializer.save(author=self.request.user, name=name)
+    @action(detail=True, methods=['get', 'delete'],
+            permission_classes=[permissions.IsAuthenticated])
+    def shopping_cart(self, request, pk=None):
+        user = self.request.user
+        recipe = self.get_object()
 
-    # def get_queryset(self):
-    #     qs = self.queryset
-    #     if len(self.request.query_params) > 0:
-    #         for p in self.request.query_params:
-    #             for f in self.filterset_fields:
-    #                 if p == f:
-    #                     qs = qs.filter(**{'%s__in' % f: self.request.query_params.getlist(p)})
-    #     return qs
+        if request.method == 'GET':
+            FavouriteRecipe.objects.update_or_create(
+                user=user,
+                recipe=recipe,
+                defaults={
+                    'user': user, 'recipe': recipe,
+                    'is_in_shopping_cart': True
+                },
+            )
+            return Response(
+                {'status': 'Рецепт успешно добавлен в список покупок'},
+                status=status.HTTP_201_CREATED
+            )
+
+        else:
+            fav_recipe = get_object_or_404(
+                FavouriteRecipe,
+                recipe=recipe,
+                user=user
+            )
+            if not fav_recipe.is_favorited:
+                fav_recipe.delete()
+            else:
+                fav_recipe.is_in_shopping_cart = False
+                fav_recipe.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()

@@ -57,7 +57,7 @@ class RecipeIngredientsAdmin(admin.ModelAdmin):
 class FavouriteRecipeAdmin(admin.ModelAdmin):
     list_display = (
         'pk', 'user', 'recipe', 'is_in_shopping_cart',
-        'is_favourite', 'added_to_favourite',
+        'is_favorited', 'added_to_favourite',
     )
     search_fields = ('recipe',)
     list_filter = ('user',)
