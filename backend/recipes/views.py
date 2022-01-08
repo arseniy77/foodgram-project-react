@@ -65,10 +65,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_201_CREATED
                 )
 
+        if not FavouriteRecipe.objects.filter(
+                recipe=recipe,
+                user=user,
+        ).exists():
+            return Response(
+                {'errors': 'Рецепт не в списке избранного'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         fav_recipe = get_object_or_404(
             FavouriteRecipe,
             recipe=recipe, user=user
         )
+        if not fav_recipe.is_favorited:
+            return Response(
+                {'errors': 'Рецепт не в списке избранного'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if not fav_recipe.is_in_shopping_cart:
             fav_recipe.delete()
         else:
@@ -83,6 +96,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = self.get_object()
 
         if request.method == 'GET':
+            if FavouriteRecipe.objects.filter(
+                    user=user,
+                    recipe=recipe,
+                    is_in_shopping_cart=True,
+            ).exists():
+                return Response(
+                    {'errors': 'Рецепт уже добавлен в корзину'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             FavouriteRecipe.objects.update_or_create(
                 user=user,
                 recipe=recipe,
@@ -97,11 +119,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
         else:
+            if not FavouriteRecipe.objects.filter(
+                    recipe=recipe,
+                    user=user,
+            ).exists():
+                return Response(
+                    {'errors': 'Рецепт не в списке покупок'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             fav_recipe = get_object_or_404(
                 FavouriteRecipe,
                 recipe=recipe,
                 user=user
             )
+            if not fav_recipe.is_in_shopping_cart:
+                return Response(
+                    {'errors': 'Рецепт не в списке покупок'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             if not fav_recipe.is_favorited:
                 fav_recipe.delete()
             else:
