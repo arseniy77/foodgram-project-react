@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from .fields import Base64ImageField
 from .models import Ingredient, Recipe, RecipeIngredients, Tag
 from .models import FavouriteRecipe
 from users.serializers import UserSerializer
@@ -74,18 +75,21 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
 
-# class RecipePostSerializer(serializers.ModelSerializer):
-#     # tags = serializers.PrimaryKeyRelatedField(
-#     #     slug_field='tag',
-#     #     many=True,
-#     #     queryset=Tag.objects.all())
-#     # ingredients = serializers.SlugRelatedField(
-#     #     slug_field='ingredient',
-#     #     queryset=Ingredient.objects.all())
-#
-#     class Meta:
-#         model = Titles
-#         fields = '__all__'
+class RecipePostSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all())
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # # ingredients = serializers.SlugRelatedField(
+    # #     slug_field='ingredient',
+    # #     queryset=Ingredient.objects.all())
+    # def get_author(self):
+    #     return self.context['request'].user
+
+    class Meta:
+        model = Recipe
+        fields = ('tags', 'image', 'name', 'text', 'cooking_time', 'author')
 
 
 class IngredientSerializer(serializers.ModelSerializer):

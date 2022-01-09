@@ -14,7 +14,7 @@ from users.permissions import AnyUserOrAnonimous
 from .filters import RecipeFilter
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
-from .serializers import RecipeFavouriteSerializer
+from .serializers import RecipeFavouriteSerializer, RecipePostSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -26,7 +26,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'POST', 'PATCH']:
-            return RecipeWriteSerializer
+            return RecipePostSerializer
         return RecipeSerializer
 
     def get_permissions(self):
