@@ -36,7 +36,7 @@ class RecipeTagAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'name', 'amount', 'measurement_unit',
+        'pk', 'name', 'measurement_unit',
     )
     search_fields = ('name',)
     list_filter = ('name',)
@@ -46,7 +46,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(RecipeIngredients)
 class RecipeIngredientsAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'recipe', 'ingredient',
+        'pk', 'recipe', 'ingredient', 'amount',
     )
     search_fields = ('recipe',)
     list_filter = ('ingredient',)

@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models import F, Q
+from django.core.validators import MinValueValidator
 
 from django.contrib.auth.models import User, AbstractUser
 User._meta.get_field('first_name').blank = False
@@ -31,18 +32,29 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        verbose_name='Ингредиент', max_length=100)
+        max_length=255,
+        unique=True,
+        verbose_name=('name'),
+        db_index=True,
+    )
     measurement_unit = models.CharField(
-        verbose_name='Единицы измерения', max_length=50)
-    amount = models.PositiveIntegerField(verbose_name='Количество')
+        verbose_name='Единицы измерения',
+        max_length=50
+    )
 
     class Meta:
-        verbose_name = 'Ингредиенты'
-        verbose_name_plural = 'Ингредиенты'
-        ordering = ('name',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient_unit',
+            )
+        ]
+        verbose_name = ('Ingredient')
+        verbose_name_plural = ('Ingredients')
+        ordering = ['name', 'measurement_unit', ]
 
     def __str__(self):
-        return f'{self.name}'
+        return self.name
 
 
 class Recipe(models.Model):
@@ -64,6 +76,16 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, through='RecipeTag')
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления',
+    )
+    ingredients = models.ManyToManyField(
+        'Ingredient',
+        related_name='recipes',
+        through='RecipeIngredients',
+        verbose_name='Ингридиенты',
+    )
+    created_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='created date',
     )
 
     class Meta:
@@ -90,20 +112,30 @@ class RecipeTag(models.Model):
 
 class RecipeIngredients(models.Model):
     recipe = models.ForeignKey(
-        Recipe,
+        'Recipe',
         on_delete=models.CASCADE,
-        related_name='ingredients'
+        related_name='ingredient_amounts'
     )
     ingredient = models.ForeignKey(
-        Ingredient,
+        'Ingredient',
         on_delete=models.CASCADE,
-        related_name='recipes'
+        related_name='ingredient_amounts'
+    )
+    amount = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name='Количество ингридиента'
     )
 
     class Meta:
         verbose_name = 'Рецепт -> Ингредиент'
         verbose_name_plural = 'Рецепт -> Ингредиент'
         ordering = ('recipe',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient',
+            )
+        ]
     def __str__(self):
         return f'{self.recipe} -> {self.ingredient}'
 

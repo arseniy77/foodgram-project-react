@@ -18,7 +18,6 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit')
-    amount = serializers.IntegerField(source='ingredient.amount')
 
     class Meta:
         model = RecipeIngredients
@@ -29,7 +28,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
     ingredients = IngredientRecipeSerializer(
-        many=True, read_only=True,)
+        many=True, read_only=True, source='ingredient_amounts')
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -47,7 +46,17 @@ class RecipeSerializer(serializers.ModelSerializer):
             return False
 
     def get_is_in_shopping_cart(self, obj):
-        return False
+        if self.context.get('request'):
+            user = self.context['request'].user
+            if user.is_anonymous:
+                return False
+            return FavouriteRecipe.objects.filter(
+                user=user,
+                recipe=obj,
+                is_in_shopping_cart=True,
+        ).exists()
+        else:
+            return False
 
     class Meta:
         model = Recipe
@@ -63,6 +72,20 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+
+
+# class RecipePostSerializer(serializers.ModelSerializer):
+#     # tags = serializers.PrimaryKeyRelatedField(
+#     #     slug_field='tag',
+#     #     many=True,
+#     #     queryset=Tag.objects.all())
+#     # ingredients = serializers.SlugRelatedField(
+#     #     slug_field='ingredient',
+#     #     queryset=Ingredient.objects.all())
+#
+#     class Meta:
+#         model = Titles
+#         fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):
