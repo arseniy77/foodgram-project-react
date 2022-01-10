@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser, User
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.db.models import F, Q
-from django.core.validators import MinValueValidator
 
-from django.contrib.auth.models import User, AbstractUser
 User._meta.get_field('first_name').blank = False
 User._meta.get_field('last_name').blank = False
 User._meta.get_field('email').blank = False
@@ -136,6 +135,7 @@ class RecipeIngredients(models.Model):
                 name='unique_recipe_ingredient',
             )
         ]
+
     def __str__(self):
         return f'{self.recipe} -> {self.ingredient}'
 

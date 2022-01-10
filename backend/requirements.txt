@@ -34,3 +34,8 @@ sqlparse==0.3.1
 djoser
 # для postgresql
 django-environ
+flake8
+pep8-naming
+flake8-broken-line
+flake8-return
+flake8-isort

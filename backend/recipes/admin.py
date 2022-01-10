@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.contrib import admin
-from .models import Ingredient, Tag, Recipe, RecipeIngredients, RecipeTag
-from .models import FavouriteRecipe
+
+from .models import FavouriteRecipe  # noqa
+from .models import Ingredient, Recipe, RecipeIngredients, RecipeTag, Tag  # noqa
+# noqa
 
 
 @admin.register(Recipe)

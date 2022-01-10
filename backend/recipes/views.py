@@ -1,20 +1,17 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.pagination import (LimitOffsetPagination,
-                                       PageNumberPagination)
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
-from users.permissions import AnyUserOrAnonimous
-from .filters import RecipeFilter
+from users.permissions import AnyUserOrAnonimous  # noqa
+from .filters import RecipeFilter  # noqa
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
-from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
-from .serializers import RecipeFavouriteSerializer, RecipePostSerializer
+from .serializers import IngredientSerializer, RecipeFavouriteSerializer  # noqa
+from .serializers import RecipePostSerializer, RecipeSerializer  # noqa
+from .serializers import TagSerializer  # noqa
+# noqa
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -30,15 +27,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     def get_permissions(self):
-        # Если в GET-запросе требуется получить информацию об объекте
-        if self.action in ['retrieve', 'list',]:
-            # Вернем обновленный перечень используемых пермишенов
+        if self.action in ['retrieve', 'list']:
             return (AnyUserOrAnonimous(),)
-        # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
         return super().get_permissions()
 
     @action(detail=True, methods=['get', 'delete'],
-             permission_classes=[permissions.IsAuthenticated])
+            permission_classes=[permissions.IsAuthenticated])
     def favorite(self, request, pk=None):
         user = self.request.user
         recipe = self.get_object()
@@ -145,14 +139,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-
-def index(request):
-    print('index заглушка')
-    return HttpResponse('У меня получилось! Пыщ-Пыщ!!')
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -162,10 +151,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
     search_fields = ('^name',)
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list',]:
+        if self.action in ['retrieve', 'list']:
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
-
-
-
-

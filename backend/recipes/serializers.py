@@ -1,12 +1,10 @@
-from rest_framework import serializers, status
-from rest_framework.renderers import JSONRenderer
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.response import Response
+from rest_framework import serializers
 
-from .fields import Base64ImageField
-from .models import Ingredient, Recipe, RecipeIngredients, Tag
-from .models import FavouriteRecipe
-from users.serializers import UserSerializer
+from .fields import Base64ImageField  # noqa
+from .models import FavouriteRecipe, Ingredient, Recipe, RecipeIngredients  # noqa
+from .models import Tag  # noqa
+from users.serializers import UserSerializer  # noqa
+# noqa
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -74,7 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 user=user,
                 recipe=obj,
                 is_in_shopping_cart=True,
-        ).exists()
+            ).exists()
         else:
             return False
 
@@ -93,11 +91,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-# class RecipePostAnswerSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = Recipe
-#         fields = ('__all__')
 
 class RecipePostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
@@ -106,11 +99,6 @@ class RecipePostSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all())
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = IngredientRecipePostSerializer(many=True,)
-    # ingredients = serializers.SlugRelatedField(
-    #     many=True,
-    #     slug_field='amount',
-    #     queryset=RecipeIngredients.objects.all()
-    # )
 
     def create(self, validated_data):
 
@@ -136,33 +124,20 @@ class RecipePostSerializer(serializers.ModelSerializer):
             )
         return recipe
 
-
-        # # amount = self.initial_data['ingredients'][0]['amount']
-        # tags = validated_data.pop('tags')
-        # # Уберем список достижений из словаря validated_data и сохраним его
-        # ingredients = validated_data.pop('ingredients')
-        # a = validated_data
-        #
-        # # Создадим нового котика пока без достижений, данных нам достаточно
-        # recipe = Recipe.objects.create(**validated_data)
-        # recipe.tags.set(tags)
-        #
-        # # Для каждого достижения из списка достижений
-        # for ingredient in ingredients:
-        #     b = ingredient
-        #     print(b)
-        #     # Создадим новую запись или получим существующий экземпляр из БД
-        #     current_ingredient, status = Ingredient.objects.get_or_create(
-        #         **ingredient,)
-        #     # Поместим ссылку на каждое достижение во вспомогательную таблицу
-        #     # Не забыв указать к какому котику оно относится
-        #     RecipeIngredients.objects.create(
-        #         ingredient=current_ingredient, recipe=recipe, amount=50)
-        # return recipe
+    def to_representation(self, instance):
+        return RecipeSerializer(instance, context=self.context).data
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author')
+        fields = (
+            'ingredients',
+            'tags',
+            'image',
+            'name',
+            'text',
+            'cooking_time',
+            'author'
+        )
 
 
 class IngredientSerializer(serializers.ModelSerializer):

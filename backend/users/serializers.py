@@ -1,13 +1,10 @@
 from django.contrib.auth import authenticate
-from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-from .models import Subscription, User
-from recipes.models import Recipe
-
+from recipes.models import Recipe  # noqa
+from .models import Subscription, User  # noqa
 
 FIELDS = {
     'user': (
@@ -18,7 +15,8 @@ FIELDS = {
         'last_name',
         'is_subscribed',
     ),
-    'signup': ('email', 'id', 'username', 'first_name', 'last_name', 'password',),
+    'signup': (
+        'email', 'id', 'username', 'first_name', 'last_name', 'password',),
     'token': ('password', 'email',)
 }
 
@@ -47,7 +45,6 @@ class UserSerializer(serializers.ModelSerializer):
                 subscriber=user, subscription=obj).exists()
         else:
             return False
-
 
     class Meta:
         fields = FIELDS['user']
@@ -80,7 +77,6 @@ class UserSignupSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-
 
     def validate_username(self, value):
         if value == 'me':
@@ -123,10 +119,10 @@ class AuthCustomTokenSerializer(serializers.Serializer):
 
             if user:
                 if not user.is_active:
-                    msg = ('Пользователь не активен')
+                    msg = 'Пользователь не активен'
                     raise serializers.ValidationError(msg)
             else:
-                msg = ('Неверные логин и/или пароль')
+                msg = 'Неверные логин и/или пароль'
                 raise serializers.ValidationError(msg)
         else:
             msg = ('Введите логин и пароль')
@@ -187,5 +183,4 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return RecipeFavouriteSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
-        counter = Recipe.objects.filter(author=obj.subscriber).count()
-        return counter
+        return Recipe.objects.filter(author=obj.subscriber).count()

@@ -1,26 +1,18 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework.authtoken.models import Token  # noqa
 from rest_framework.decorators import action
-
-from rest_framework import generics, parsers, renderers
 from rest_framework.pagination import LimitOffsetPagination
-
-# from foodgram.settings import DEFAULT_FROM_EMAIL
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import filters, parsers, permissions, viewsets  # noqa
+from rest_framework import renderers, status  # noqa
 
 from .models import Subscription, User
 from .permissions import AnyUserOrAnonimous
-from .serializers import (UserSerializer,
-                          SubscriptionSerializer,
-                          SubscriptionChangeSerializer,
-                          UserSignupSerializer,
-                          AuthCustomTokenSerializer,
-                          ChangePasswordSerializer,
-                          )
+from .serializers import AuthCustomTokenSerializer, ChangePasswordSerializer  # noqa
+from .serializers import SubscriptionChangeSerializer, SubscriptionSerializer  # noqa
+from .serializers import UserSignupSerializer, UserSerializer  # noqa
+# noqa
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -39,7 +31,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return SubscriptionChangeSerializer
         return UserSerializer
 
-
     @action(
         methods=['PATCH'],
         detail=True,
@@ -50,8 +41,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if role is not None:
             if role == User.ADMIN:
                 serializer.save(is_staff=True, is_superuser=True)
-            if role == User.MODERATOR:
-                serializer.save(is_staff=True, is_superuser=False)
             if role == User.USER:
                 serializer.save(is_staff=False, is_superuser=False)
         else:
@@ -72,7 +61,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(
                 {'role': 'user'},
                 status=status.HTTP_400_BAD_REQUEST)
-
         serializer.save()
         return Response(serializer.data)
 
@@ -121,8 +109,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
 class ObtainAuthToken(APIView):
     throttle_classes = ()
     permission_classes = ()
@@ -154,22 +140,24 @@ class UserLogout(APIView):
 
 
 class ChangePasswordViewset(APIView):
-
     serializer_class = ChangePasswordSerializer
     model = User
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_object(self, queryset=None):
-        obj = self.request.user
-        return obj
+        return self.request.user
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         serializer = ChangePasswordSerializer(data=request.data)
 
         if serializer.is_valid():
-            if not self.object.check_password(serializer.data.get("current_password")):
-                return Response({"current_password": ['Неверный пароль.']}, status=status.HTTP_400_BAD_REQUEST)
+            if not self.object.check_password(
+                    serializer.data.get("current_password")):
+                return Response(
+                    {"current_password": ['Неверный пароль.']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             self.object.set_password(serializer.data.get("new_password"))
             self.object.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -178,19 +166,10 @@ class ChangePasswordViewset(APIView):
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
-    # filter_backends = (DjangoFilterBackend,)
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
         user = self.request.user
-        response = Subscription.objects.filter(
-            subscriber=user).select_related('subscription')
-        return response
-
-
-# class SubscriptionViewSet(viewsets.ModelViewSet):
-#     queryset = Subscription.objects.all()
-#     serializer_class = SubscriptionSerializer
-#     permission_classes = (AnyUserOrAnonimous,)
-
-
+        return Subscription.objects.filter(
+            subscriber=user
+        ).select_related('subscription')
