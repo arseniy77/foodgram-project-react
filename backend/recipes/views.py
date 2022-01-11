@@ -1,3 +1,5 @@
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
@@ -138,10 +140,45 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 fav_recipe.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=False, methods=['get'],
+            permission_classes=(permissions.IsAuthenticated,))
+    def download_shopping_cart(self, request, pk=None):
+        user = request.user
+        recipes = Recipe.objects.filter(
+            in_favourites__user=user,
+            in_favourites__is_in_shopping_cart=True
+        )
+        test_ingredients = recipes.values(
+            'ingredients__name'
+        )
+        print(test_ingredients)
+        ingredients = recipes.values(
+            'ingredients__name',
+            'ingredients__measurement_unit').order_by(
+            'ingredients__name').annotate(
+            ingredients_total=Sum('ingredient_amounts__amount')
+        )
+        shopping_list = {}
+        for item in ingredients:
+            title = item.get('ingredients__name')
+            count = str(item.get('ingredients_total')) + ' ' + item[
+                'ingredients__measurement_unit'
+            ]
+            shopping_list[title] = count
+        data = ''
+        for key, value in shopping_list.items():
+            data += f'{key} - {value}\n'
+        return HttpResponse(data, content_type='text/plain')
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            return (AnyUserOrAnonimous(),)
+        return super().get_permissions()
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
