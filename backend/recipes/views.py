@@ -8,7 +8,8 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from users.permissions import AnyUserOrAnonimous  # noqa
-from .filters import RecipeFilter  # noqa
+from .file_services import import_csv
+from .filters import IngredientFilter, RecipeFilter
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
 from .serializers import IngredientSerializer, RecipeFavouriteSerializer  # noqa
 from .serializers import RecipePostSerializer, RecipeSerializer  # noqa
@@ -22,6 +23,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+
+    # def get_filterset(self, *args, **kwargs):
+    #     fs = super().get_filterset(*args, **kwargs)
+    #     fs.filters['is_in_shopping_cart'].field.queryset = fs.filters['is_in_shopping_cart'].field.queryset.filter(author=self.request.user)
+    #     return fs
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'POST', 'PATCH']:
@@ -148,10 +154,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             in_favourites__user=user,
             in_favourites__is_in_shopping_cart=True
         )
-        test_ingredients = recipes.values(
-            'ingredients__name'
-        )
-        print(test_ingredients)
         ingredients = recipes.values(
             'ingredients__name',
             'ingredients__measurement_unit').order_by(
@@ -174,6 +176,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
     def get_permissions(self):
         if self.action in ['retrieve', 'list']:
@@ -184,10 +187,19 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    pagination_class = None
+    filter_backends = (DjangoFilterBackend,)
+    # search_fields = ('^name',)
+    filterset_fields = ('name',)
+    filterset_class = IngredientFilter
+
 
     def get_permissions(self):
         if self.action in ['retrieve', 'list']:
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
+
+    @action(detail=False, methods=['get'],
+            permission_classes=(permissions.IsAuthenticated,))
+    def import_ingredients(self, request, pk=None):
+        return import_csv()
