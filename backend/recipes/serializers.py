@@ -15,10 +15,9 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='ingredient.id')
-    name = serializers.CharField(source='ingredient.name')
-    measurement_unit = serializers.CharField(
-        source='ingredient.measurement_unit')
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit.name')
 
     class Meta:
         model = RecipeIngredients
@@ -45,8 +44,8 @@ class IngredientRecipePostSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
-    ingredients = IngredientRecipePostSerializer(
-        many=True, read_only=True,)
+    ingredients = IngredientRecipeSerializer(
+        many=True, read_only=True, source='ingredient_amounts')
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -123,6 +122,29 @@ class RecipePostSerializer(serializers.ModelSerializer):
                 amount=amount,
             )
         return recipe
+
+    def update(self, instance, validated_data):
+        tags = validated_data.get('tags')
+        instance.name = validated_data.get('name')
+        instance.text = validated_data.get('text')
+        instance.cooking_time = validated_data.get('cooking_time')
+        instance.image = validated_data.get('image')
+
+        instance.save()
+        instance.tags.set(tags)
+
+        instance.ingredients.clear()
+
+        for i in range(0, len(validated_data.get('ingredients'))):
+            id = validated_data.get('ingredients')[i].get('id')
+            amount = validated_data.get('ingredients')[i].get('amount')
+            ingredient = Ingredient.objects.get(pk=id)
+            RecipeIngredients.objects.get_or_create(
+                recipe=instance,
+                ingredient=ingredient,
+                amount=amount,
+            )
+        return instance
 
     def to_representation(self, instance):
         return RecipeSerializer(instance, context=self.context).data

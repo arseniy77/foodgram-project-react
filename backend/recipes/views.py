@@ -11,6 +11,7 @@ from users.permissions import AnyUserOrAnonimous  # noqa
 from .file_services import import_csv
 from .filters import IngredientFilter, RecipeFilter
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
+from .permissions import IsRecipeOwnerOrReadOnly
 from .serializers import IngredientSerializer, RecipeFavouriteSerializer  # noqa
 from .serializers import RecipePostSerializer, RecipeSerializer  # noqa
 from .serializers import TagSerializer  # noqa
@@ -18,16 +19,22 @@ from .serializers import TagSerializer  # noqa
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = LimitOffsetPagination
+    permission_classes = (IsRecipeOwnerOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    # def get_filterset(self, *args, **kwargs):
-    #     fs = super().get_filterset(*args, **kwargs)
-    #     fs.filters['is_in_shopping_cart'].field.queryset = fs.filters['is_in_shopping_cart'].field.queryset.filter(author=self.request.user)
-    #     return fs
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
+        is_favorited = self.request.query_params.get('is_favorited')
+        recipes_limit = self.request.query_params.get('recipes_limit')
+        if is_in_shopping_cart is not None or is_favorited is not None:
+            queryset = queryset.filter(author=self.request.user)
+        if recipes_limit is not None:
+            queryset = queryset[:int(recipes_limit)]
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'POST', 'PATCH']:
@@ -38,6 +45,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ['retrieve', 'list']:
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
 
     @action(detail=True, methods=['get', 'delete'],
             permission_classes=[permissions.IsAuthenticated])
