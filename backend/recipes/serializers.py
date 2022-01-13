@@ -1,8 +1,13 @@
 from rest_framework import serializers
 
 from .fields import Base64ImageField  # noqa
-from .models import FavouriteRecipe, Ingredient, Recipe, RecipeIngredients  # noqa
-from .models import Tag  # noqa
+from .models import (
+    FavouriteRecipe,
+    Ingredient,
+    Recipe,
+    RecipeIngredients,
+    Tag
+)
 from users.serializers import UserSerializer  # noqa
 # noqa
 

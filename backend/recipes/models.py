@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, User
-from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
+
+from .validators import CustomMinValueValidator
 
 User._meta.get_field('first_name').blank = False
 User._meta.get_field('last_name').blank = False
@@ -11,6 +12,18 @@ AbstractUser.REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
 
 User = get_user_model()
 
+MEASUREMENT_CHOICES = (
+        ('г', 'грамм'),
+        ('мл', 'миллилитров'),
+        ('ст. л.', 'столовая ложка'),
+        ('ч. л.', 'чайная ложка'),
+        ('тушка', 'тушка'),
+        ('шт', 'штук'),
+        ('по вкусу', 'по вкусу'),
+        ('стакан', 'стакан'),
+        ('горсть', 'горсть'),
+        ('упаковка', 'упаковка'),
+    )
 
 class Tag(models.Model):
     name = models.CharField(
@@ -38,6 +51,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         verbose_name='Единицы измерения',
+        choices=MEASUREMENT_CHOICES,
         max_length=50
     )
 
@@ -48,8 +62,8 @@ class Ingredient(models.Model):
                 name='unique_ingredient_unit',
             )
         ]
-        verbose_name = ('Ingredient')
-        verbose_name_plural = ('Ingredients')
+        verbose_name = 'Ингридиент'
+        verbose_name_plural = 'Ингридиенты'
         ordering = ['name', 'measurement_unit', ]
 
     def __str__(self):
@@ -75,6 +89,7 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, through='RecipeTag')
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления',
+        validators=(CustomMinValueValidator(1),)
     )
     ingredients = models.ManyToManyField(
         'Ingredient',
@@ -93,7 +108,7 @@ class Recipe(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return f'{self.text:.15}...'
+        return f'{self.name:.15}...'
 
 
 class RecipeTag(models.Model):
@@ -121,7 +136,7 @@ class RecipeIngredients(models.Model):
         related_name='ingredient_amounts'
     )
     amount = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1)],
+        validators=(CustomMinValueValidator(1),),
         verbose_name='Количество ингридиента'
     )
 
@@ -177,8 +192,8 @@ class FavouriteRecipe(models.Model):
                 name='unique_favourite_recipe',
             )
         ]
-        verbose_name = 'Favourites'
-        verbose_name_plural = 'Favourites'
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
         ordering = ['-added_to_favourite', '-added_to_shopping_cart']
 
     def __str__(self):

@@ -6,16 +6,13 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'lckqid%tqeq+a7qsapqt0j_mojbx(mhnu6u4$s2)m!_7er5hd!'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'lckqid%tqeq+a7qsapqt0j_mojbx(mhnu6u4$s2)m!_7er5hd!')
 
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '[::1]',
-    'backend',
-]
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1],backend,web'
+).split(',')
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
@@ -130,5 +127,5 @@ REST_FRAMEWORK = {
 CSRF_COOKIE_SECURE = False
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
-DEFAULT_FROM_EMAIL = 'mail@foodgram.arscorp.ru'
+DEFAULT_FROM_EMAIL = os.environ.get('FROM_EMAIL', 'info@foodgram.site')
 INGREDIENTS_CSV_FILENAME = 'data/ingredients.csv'

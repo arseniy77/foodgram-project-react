@@ -11,7 +11,6 @@ def import_csv():
         for row in reader:
             name = row['name']
             measurement_unit = row['measurement_unit']
-            print(name, measurement_unit)
             Ingredient.objects.get_or_create(
                 name=name,
                 measurement_unit=measurement_unit

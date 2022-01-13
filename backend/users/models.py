@@ -4,7 +4,7 @@ from django.db.models import F, Q
 
 
 class User(AbstractUser):
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
+    REQUIRED_FIELDS = ('first_name', 'last_name', 'email')
     USER = 'user'
     ADMIN = 'admin'
     ROLE_CHOICES = (
@@ -64,15 +64,15 @@ class Subscription(models.Model):
         return f'Подписчик {self.subscriber}'
 
     class Meta:
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
-                fields=['subscriber', 'subscription'],
+                fields=('subscriber', 'subscription'),
                 name='uniq_follow'
             ),
             models.CheckConstraint(
                 check=~Q(subscriber=F('subscription')),
                 name='self_following'
             )
-        ]
+        )
         verbose_name = 'Подписчик'
         verbose_name_plural = 'Подписчики'

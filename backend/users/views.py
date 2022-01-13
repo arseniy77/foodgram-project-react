@@ -4,23 +4,33 @@ from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import filters, parsers, permissions, viewsets  # noqa
-from rest_framework import renderers, status  # noqa
+from rest_framework import (
+    filters,
+    parsers,
+    permissions,
+    viewsets,
+    renderers,
+    status
+)
 
 from .models import Subscription, User
 from .permissions import AnyUserOrAnonimous
-from .serializers import AuthCustomTokenSerializer, ChangePasswordSerializer  # noqa
-from .serializers import SubscriptionChangeSerializer, SubscriptionSerializer  # noqa
-from .serializers import UserSignupSerializer, UserSerializer  # noqa
-# noqa
+from .serializers import (
+    AuthCustomTokenSerializer,
+    ChangePasswordSerializer,
+    SubscriptionChangeSerializer,
+    SubscriptionSerializer,
+    UserSignupSerializer,
+    UserSerializer
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = [AnyUserOrAnonimous]
+    permission_classes = (AnyUserOrAnonimous,)
     serializer_class = UserSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['username']
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
     lookup_field = 'id'
     pagination_class = LimitOffsetPagination
 
@@ -32,9 +42,9 @@ class UserViewSet(viewsets.ModelViewSet):
         return UserSerializer
 
     @action(
-        methods=['PATCH'],
+        methods=('PATCH',),
         detail=True,
-        permission_classes=[permissions.IsAdminUser],
+        permission_classes=(permissions.IsAdminUser,),
     )
     def perform_update(self, serializer):
         role = serializer.validated_data.get('role')
@@ -47,10 +57,10 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
 
     @action(
-        methods=['GET', 'PATCH'],
+        methods=('GET', 'PATCH'),
         detail=False,
         name='me',
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def me(self, request):
         user = request.user
@@ -64,8 +74,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
 
-    @action(detail=True, methods=['GET', 'DELETE'],
-            permission_classes=[permissions.IsAuthenticated]
+    @action(detail=True, methods=('GET', 'DELETE'),
+            permission_classes=(permissions.IsAuthenticated,)
             )
     def subscribe(self, request, id=None):
         subscriber = self.request.user

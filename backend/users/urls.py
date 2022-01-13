@@ -4,13 +4,13 @@ from rest_framework.routers import DefaultRouter
 from users.views import ChangePasswordViewset, UserViewSet  # noqa
 from .views import SubscriptionViewSet  # noqa
 
-router = DefaultRouter()
-router.register(
+router_v1 = DefaultRouter()
+router_v1.register(
     r'subscriptions',
     SubscriptionViewSet,
     basename='subscriptions'
 )
-router.register(
+router_v1.register(
     r'',
     UserViewSet,
     basename=r'users'
@@ -25,7 +25,7 @@ URLS = [
     ),
 ]
 
-URLS += router.urls
+URLS += router_v1.urls
 urlpatterns = [
     path('', include(URLS)),
 ]

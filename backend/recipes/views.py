@@ -2,7 +2,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -12,9 +12,13 @@ from .file_services import import_csv
 from .filters import IngredientFilter, RecipeFilter
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
 from .permissions import IsRecipeOwnerOrReadOnly
-from .serializers import IngredientSerializer, RecipeFavouriteSerializer  # noqa
-from .serializers import RecipePostSerializer, RecipeSerializer  # noqa
-from .serializers import TagSerializer  # noqa
+from .serializers import (
+    IngredientSerializer,
+    RecipeFavouriteSerializer,
+    RecipePostSerializer,
+    RecipeSerializer,
+    TagSerializer
+)
 # noqa
 
 
@@ -37,12 +41,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.request.method in ['PUT', 'POST', 'PATCH']:
+        if self.request.method in ('PUT', 'POST', 'PATCH'):
             return RecipePostSerializer
         return RecipeSerializer
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ('retrieve', 'list'):
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
 
@@ -52,8 +56,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=['get', 'delete'],
-            permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=('get', 'delete'),
+            permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, pk=None):
         user = self.request.user
         recipe = self.get_object()
@@ -104,8 +108,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             fav_recipe.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['get', 'delete'],
-            permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=('get', 'delete'),
+            permission_classes=(permissions.IsAuthenticated),)
     def shopping_cart(self, request, pk=None):
         user = self.request.user
         recipe = self.get_object()
@@ -159,7 +163,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 fav_recipe.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'],
+    @action(detail=False, methods=('get'),
             permission_classes=(permissions.IsAuthenticated,))
     def download_shopping_cart(self, request, pk=None):
         user = request.user
@@ -192,7 +196,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ('retrieve', 'list'):
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
 
@@ -202,17 +206,17 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = (DjangoFilterBackend,)
-    # search_fields = ('^name',)
     filterset_fields = ('name',)
     filterset_class = IngredientFilter
 
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ('retrieve', 'list'):
             return (AnyUserOrAnonimous(),)
         return super().get_permissions()
 
-    @action(detail=False, methods=['get'],
-            permission_classes=(permissions.IsAuthenticated,))
+    @action(detail=False, methods=('get',),
+            permission_classes=(permissions.IsAdminUser,))
     def import_ingredients(self, request, pk=None):
+        """Импорт списка ингридиентов из файла."""
         return import_csv()

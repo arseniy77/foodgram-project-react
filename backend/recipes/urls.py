@@ -4,12 +4,12 @@ from rest_framework.routers import DefaultRouter
 from .views import IngredientViewSet, RecipeViewSet, TagViewSet
 
 app_name = 'recipes'
-router = DefaultRouter()
+router_v1 = DefaultRouter()
 
-router.register(r'recipes', RecipeViewSet, basename='recipes')
-router.register(r'tags', TagViewSet, basename=r'^tags')
-router.register(r'ingredients', IngredientViewSet, basename=r'^ingredients')
+router_v1.register(r'recipes', RecipeViewSet, basename='recipes')
+router_v1.register(r'tags', TagViewSet, basename=r'^tags')
+router_v1.register(r'ingredients', IngredientViewSet, basename=r'^ingredients')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', include(router_v1.urls)),
 ]
