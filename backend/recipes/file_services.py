@@ -5,9 +5,12 @@ from django.http import HttpResponse
 
 from .models import Ingredient
 
+
 def import_csv():
     with open(settings.INGREDIENTS_CSV_FILENAME) as csvfile:
-        reader = csv.DictReader(csvfile, fieldnames=('name', 'measurement_unit'))
+        reader = csv.DictReader(
+            csvfile, fieldnames=('name', 'measurement_unit')
+        )
         for row in reader:
             name = row['name']
             measurement_unit = row['measurement_unit']

@@ -23,7 +23,6 @@ class RecipeFilter(filters.FilterSet):
         field_name='in_favourites__is_in_shopping_cart'
     )
 
-
     class Meta:
         model = Recipe
         fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_cart')

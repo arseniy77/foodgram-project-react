@@ -8,17 +8,17 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from users.permissions import AnyUserOrAnonimous  # noqa
-from .file_services import import_csv
+from .file_services import import_csv  # noqa
 from .filters import IngredientFilter, RecipeFilter
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
 from .permissions import IsRecipeOwnerOrReadOnly
-from .serializers import (
-    IngredientSerializer,
-    RecipeFavouriteSerializer,
-    RecipePostSerializer,
-    RecipeSerializer,
-    TagSerializer
-)
+from .serializers import (  # noqa
+    IngredientSerializer,  # noqa
+    RecipeFavouriteSerializer,  # noqa
+    RecipePostSerializer,  # noqa
+    RecipeSerializer,  # noqa
+    TagSerializer  # noqa
+)  # noqa
 # noqa
 
 
@@ -31,14 +31,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-        is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
         is_favorited = self.request.query_params.get('is_favorited')
         recipes_limit = self.request.query_params.get('recipes_limit')
         if is_in_shopping_cart is not None or is_favorited is not None:
             queryset = queryset.filter(author=self.request.user)
         if recipes_limit is not None:
             queryset = queryset[:int(recipes_limit)]
-        return queryset
+        return queryset  # noqa
 
     def get_serializer_class(self):
         if self.request.method in ('PUT', 'POST', 'PATCH'):
@@ -109,7 +111,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=('get', 'delete'),
-            permission_classes=(permissions.IsAuthenticated),)
+            permission_classes=(permissions.IsAuthenticated,),)
     def shopping_cart(self, request, pk=None):
         user = self.request.user
         recipe = self.get_object()
@@ -208,7 +210,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name',)
     filterset_class = IngredientFilter
-
 
     def get_permissions(self):
         if self.action in ('retrieve', 'list'):

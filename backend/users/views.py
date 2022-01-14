@@ -4,25 +4,26 @@ from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import (
-    filters,
-    parsers,
-    permissions,
-    viewsets,
-    renderers,
-    status
-)
+from rest_framework import (  # noqa
+    filters,  # noqa
+    parsers,  # noqa
+    permissions,  # noqa
+    viewsets,  # noqa
+    renderers,  # noqa
+    status  # noqa
+)  # noqa
 
 from .models import Subscription, User
 from .permissions import AnyUserOrAnonimous
-from .serializers import (
-    AuthCustomTokenSerializer,
-    ChangePasswordSerializer,
-    SubscriptionChangeSerializer,
-    SubscriptionSerializer,
-    UserSignupSerializer,
-    UserSerializer
-)
+from .serializers import (  # noqa
+    AuthCustomTokenSerializer,  # noqa
+    ChangePasswordSerializer,  # noqa
+    SubscriptionChangeSerializer,  # noqa
+    SubscriptionSerializer,  # noqa
+    UserSignupSerializer,  # noqa
+    UserSerializer  # noqa
+)  # noqa
+# noqa
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -87,7 +88,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     subscriber=subscriber,
                     subscription=subscription).exists():
                 return Response(
-                    ('Вы уже подписаны на этого автора'),
+                    'Вы уже подписаны на этого автора',
                     status=status.HTTP_400_BAD_REQUEST
                 )
 

@@ -25,6 +25,7 @@ MEASUREMENT_CHOICES = (
         ('упаковка', 'упаковка'),
     )
 
+
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Тег',

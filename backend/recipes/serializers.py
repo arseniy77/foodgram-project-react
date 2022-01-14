@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
 from .fields import Base64ImageField  # noqa
-from .models import (
-    FavouriteRecipe,
-    Ingredient,
-    Recipe,
-    RecipeIngredients,
-    Tag
-)
+from .models import (  # noqa
+    FavouriteRecipe,  # noqa
+    Ingredient,  # noqa
+    Recipe,  # noqa
+    RecipeIngredients,  # noqa
+    Tag  # noqa
+)  # noqa
 from users.serializers import UserSerializer  # noqa
 # noqa
 
@@ -22,7 +22,9 @@ class TagSerializer(serializers.ModelSerializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit.name'
+    )
 
     class Meta:
         model = RecipeIngredients
