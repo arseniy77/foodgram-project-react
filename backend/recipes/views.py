@@ -31,9 +31,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-        is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart'
-        )
         recipes_limit = self.request.query_params.get('recipes_limit')
         if recipes_limit is not None:
             queryset = queryset[:int(recipes_limit)]
