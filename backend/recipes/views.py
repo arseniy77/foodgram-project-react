@@ -34,10 +34,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         is_in_shopping_cart = self.request.query_params.get(
             'is_in_shopping_cart'
         )
-        is_favorited = self.request.query_params.get('is_favorited')
         recipes_limit = self.request.query_params.get('recipes_limit')
-        if is_in_shopping_cart is not None or is_favorited is not None:
-            queryset = queryset.filter(author=self.request.user)
         if recipes_limit is not None:
             queryset = queryset[:int(recipes_limit)]
         return queryset  # noqa
@@ -58,14 +55,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=('get', 'delete'),
+    @action(detail=True, methods=('get', 'post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, pk=None):
         user = self.request.user
         recipe = self.get_object()
-        if request.method == 'GET':
+        if request.method == 'GET' or request.method == 'POST':
             if FavouriteRecipe.objects.filter(
-                user=user, recipe=recipe
+                user=user, recipe=recipe, is_favorited=True
             ).exists():
                 return Response(
                     {'errors': 'Рецепт уже добавлен в избранное'},
@@ -110,13 +107,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             fav_recipe.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=('get', 'delete'),
+    @action(detail=True, methods=('get', 'post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,),)
     def shopping_cart(self, request, pk=None):
         user = self.request.user
         recipe = self.get_object()
 
-        if request.method == 'GET':
+        if request.method == 'GET' or request.method == 'POST':
             if FavouriteRecipe.objects.filter(
                     user=user,
                     recipe=recipe,
@@ -165,7 +162,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 fav_recipe.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=('get'),
+    @action(detail=False, methods=('get', 'post'),
             permission_classes=(permissions.IsAuthenticated,))
     def download_shopping_cart(self, request, pk=None):
         user = request.user

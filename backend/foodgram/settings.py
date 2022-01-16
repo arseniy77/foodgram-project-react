@@ -79,6 +79,7 @@ if DATABASE_TYPE == 'gunicorn':
             'USER': os.environ.get('POSTGRES_USER', 'postgres'),
             'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
             'HOST': os.environ.get('DB_HOST', 'db'),
+            # 'HOST': '127.0.0.1',
             'PORT': os.environ.get('DB_PORT', 5432),
         }
     }
@@ -115,15 +116,15 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_URL = '/backendstatic/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'backendstatic')
 
-STATIC_FILES = os.path.join(BASE_DIR, 'static')
+STATIC_FILES = os.path.join(BASE_DIR, 'backendstatic')
 
-MEDIA_URL = '/media/'
+MEDIA_URL = '/backendmedia/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'backendmedia')
 
 BLANK_VALUE_CONST = '-пусто-'
 

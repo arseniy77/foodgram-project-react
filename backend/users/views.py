@@ -75,14 +75,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
 
-    @action(detail=True, methods=('GET', 'DELETE'),
+    @action(detail=True, methods=('GET', 'POST', 'DELETE'),
             permission_classes=(permissions.IsAuthenticated,)
             )
     def subscribe(self, request, id=None):
         subscriber = self.request.user
         subscription = self.get_object()
 
-        if request.method == 'GET':
+        if request.method == 'GET' or request.method == 'POST':
 
             if Subscription.objects.filter(
                     subscriber=subscriber,

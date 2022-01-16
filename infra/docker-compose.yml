@@ -7,6 +7,9 @@ volumes:
 
 services:
   db:
+    ports:
+      - "5432:5432"
+    restart: always
     image: postgres:12.4
     volumes:
       - postgres_data:/var/lib/postgresql/data/
@@ -19,27 +22,24 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
-    depends_on:
-      - db
-      - backend
-      - nginx
+
 
   backend:
+    restart: always
     build:
       context: ../backend
       dockerfile: Dockerfile
     command: gunicorn foodgram.wsgi:application --bind 0.0.0.0:18000
     volumes:
-      - static_value:/app/static/
-      - media_value:/app/media/
-    ports:
-      - "18000:18000"
+      - static_value:/app/backendstatic/
+      - media_value:/app/backendmedia/
     depends_on:
       - db
     env_file:
       - ../backend/foodgram/.env
 
   nginx:
+    restart: always
     image: nginx:1.19.3
     ports:
       - "80:80"
@@ -48,7 +48,8 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
       - ../docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
-      - static_value:/var/html/static/
-      - media_value:/var/html/media/
+      - static_value:/var/html/backendstatic/
+      - media_value:/var/html/backendmedia/
     depends_on:
       - backend
+      - frontend
