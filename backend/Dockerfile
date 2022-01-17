@@ -10,8 +10,4 @@ RUN pip3 install -r /app/requirements.txt
 
 COPY ../ .
 
-#RUN python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic
-
 CMD gunicorn foodgram.wsgi:application --bind 0.0.0.0:18000
-
-#CMD python /code/manage.py runserver 0:18000
