@@ -10,7 +10,7 @@ SECRET_KEY = os.environ.get(
     'SECRET_KEY', 'lckqid%tqeq+a7qsapqt0j_mojbx(mhnu6u4$s2)m!_7er5hd!'
 )
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1],backend,web'
