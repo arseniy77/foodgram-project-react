@@ -134,3 +134,5 @@ dmypy.json
 /backend/static/
 /backend/media/
 /frontend/
+/backend/backendmedia/
+/backend/backendstatic/

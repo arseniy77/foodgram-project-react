@@ -8,6 +8,7 @@ from .models import (  # noqa
     RecipeIngredients,  # noqa
     Tag  # noqa
 )  # noqa
+from .validators import CustomMinValueValidator  # noqa
 from users.serializers import UserSerializer  # noqa
 # noqa
 
@@ -102,9 +103,29 @@ class RecipePostSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=Tag.objects.all())
+        queryset=Tag.objects.all(),)
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    ingredients = IngredientRecipePostSerializer(many=True,)
+    ingredients = IngredientRecipePostSerializer(
+        many=True,
+    )
+    cooking_time = serializers.IntegerField(
+        validators=(CustomMinValueValidator(1),),
+    )
+
+    def validate_ingredients(self, value):
+        ingredients = []
+        for ingredient in value:
+            if ingredient['id'] in ingredients:
+                raise serializers.ValidationError(
+                    'Ингридиенты не должны повторяться!'
+                )
+            ingredient_amount = ingredient['amount']
+            if ingredient_amount <= 0:
+                raise serializers.ValidationError(
+                    'Количество ингридиента должно быть числом больше нуля!'
+                )
+            ingredients.append(ingredient['id'])
+        return value
 
     def create(self, validated_data):
 

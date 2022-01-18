@@ -1,5 +1,4 @@
 from django.db.models import Sum
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
@@ -8,7 +7,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from users.permissions import AnyUserOrAnonimous  # noqa
-from .file_services import import_csv  # noqa
+from .file_services import create_pdf, import_csv  # noqa
 from .filters import IngredientFilter, RecipeFilter
 from .models import FavouriteRecipe, Ingredient, Recipe, Tag
 from .permissions import IsRecipeOwnerOrReadOnly
@@ -180,10 +179,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredients__measurement_unit'
             ]
             shopping_list[title] = count
-        data = ''
-        for key, value in shopping_list.items():
-            data += f'{key} - {value}\n'
-        return HttpResponse(data, content_type='text/plain')
+        return create_pdf(shopping_list)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
